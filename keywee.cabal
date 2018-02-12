@@ -1,0 +1,116 @@
+name:                keywee
+version:             0.0.1.0
+synopsis:            Keybase chat plugin for WeeChat
+description:         Please see README.md
+homepage:            http://github.com/jkopanski/keywee#readme
+license:             GPL-3
+license-file:        LICENSE
+author:              Jakub Kopański
+maintainer:          jkopansk@gmail.com
+copyright:           Copyright (c) 2017 Jakub Kopński
+category:            IRC Client, Network, Plugin
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:
+    Keybase
+    Keybase.Chat
+    Keybase.Chat.Types
+  default-language:    Haskell2010
+  default-extensions:
+      DeriveGeneric
+    , NoImplicitPrelude
+    , OverloadedStrings
+  build-depends:
+      base                 >= 4.7  && < 5
+    , aeson
+    , async                >= 2.1  && < 2.2
+    , bytestring           >= 0.10 && < 0.11
+    , conduit              >= 1.2  && < 1.3
+    , conduit-extra        >= 1.1  && < 1.3
+    , monads-tf            >= 0.1  && < 0.2
+    , mono-traversable     >= 1.0  && < 1.1
+    , process              >= 1.4  && < 1.7
+    , stm                  >= 2.4  && < 2.5
+    , stm-conduit
+    , text                 >= 1.2  && < 1.3
+    , transformers         >= 0.5  && < 0.6
+    , typed-process
+
+executable pipe
+  hs-source-dirs:      plugin
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  ghc-options:
+      -threaded
+      -debug
+  default-extensions:
+      DeriveGeneric
+    , OverloadedStrings
+  build-depends:
+      base                 >= 4.7  && < 5
+    , aeson
+    , async                >= 2.1  && < 2.2
+    , bytestring           >= 0.10 && < 0.11
+    , conduit              >= 1.2  && < 1.3
+    , conduit-extra        >= 1.1  && < 1.3
+    , keywee
+    , monads-tf            >= 0.1  && < 0.2
+    , mono-traversable     >= 1.0  && < 1.1
+    , process              >= 1.4  && < 1.7
+    , stm                  >= 2.4  && < 2.5
+    , text                 >= 1.2  && < 1.3
+    , transformers         >= 0.5  && < 0.6
+
+-- foreign-library keywee
+--   type:                native-shared
+--   lib-version-info:    0:0:1
+--   hs-source-dirs:      plugin
+--   other-modules:
+--     Plugin
+--     WeeChat.Buffer
+--     WeeChat.FFI
+--     WeeChat.Types
+--   c-sources:           plugin/keywee.c
+--   include-dirs:        plugin
+--   default-language:    Haskell2010
+--   default-extensions:
+--       CPP
+--     , ForeignFunctionInterface
+--     , OverloadedStrings
+--   ghc-options:         -threaded
+--   build-depends:
+--       base                 >= 4.7  && < 5
+--     , aeson
+--     , async                >= 2.1  && < 2.2
+--     , bytestring           >= 0.10 && < 0.11
+--     , conduit              >= 1.2  && < 1.3
+--     , conduit-extra        >= 1.1  && < 1.3
+--     , keywee
+--     , monads-tf            >= 0.1  && < 0.2
+--     , mono-traversable     >= 1.0  && < 1.1
+--     , process              >= 1.4  && < 1.7
+--     , stm                  >= 2.4  && < 2.5
+--     , stm-conduit          >= 3.0  && < 3.1
+--     , text                 >= 1.2  && < 1.3
+--     , transformers         >= 0.5  && < 0.6
+  
+-- test-suite keywee-tests
+--   type:                exitcode-stdio-1.0
+--   hs-source-dirs:      test
+--   main-is:             Test.hs
+--   default-language:    Haskell2010
+--   default-extensions:  OverloadedStrings
+--   build-depends:
+--       base                 >= 4.7  && < 5
+--     , QuickCheck           >= 2.8  && < 2.9
+--     , smallcheck           >= 1.1  && < 1.2
+--     , tasty                >= 0.11 && < 0.12
+--     , tasty-hunit          >= 0.9  && < 0.10
+--     , tasty-quickcheck     >= 0.8  && < 0.9
+--     , tasty-smallcheck     >= 0.8  && < 0.9
+--     , test-invariant       >= 0.4  && < 0.5
+--     , transformers         >= 0.4  && < 0.5
+--   ghc-options:         -threaded
