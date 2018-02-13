@@ -1,8 +1,3 @@
-{-# language
-        FlexibleContexts
-      , FlexibleInstances
-      , RankNTypes
-      , TypeFamilies #-}
 module Keybase.Chat
   ( module Keybase.Chat.Types
   , open
@@ -21,15 +16,23 @@ import Control.Monad.STM             (STM, atomically)
 
 import           Data.Aeson                 (decode, encode, parseJSON)
 import           Data.ByteString            (ByteString)
+import qualified Data.ByteString            as S
 import qualified Data.ByteString.Lazy       as LBS
 import           Data.Conduit               (ConduitM, (.|), runConduit, yield)
+import qualified Data.Conduit               as C
 import qualified Data.Conduit.Binary        as CB
 import qualified Data.Conduit.List          as CL
-import           Data.Conduit.Process.Typed (createSink, createSource, withProcess_)
+import           Data.Conduit.Process.Typed (createPipe, createSink, createSource, withProcess_)
 import           Data.Maybe                 (Maybe)
 import           Data.Void                  (Void)
-import           System.Process.Typed       (proc, getStderr, getStdin, getStdout, setStderr, setStdin, setStdout, waitExitCode)
+import           System.Process.Typed       (StreamSpec, StreamType (..)
+                                            ,proc
+                                            ,getStderr, getStdin, getStdout
+                                            ,setStderr, setStdin, setStdout
+                                            )
+import           System.IO                  (hClose)
 
+import Data.Conduit.Process.Typed.Flush
 import Keybase.Chat.Types
 
 -- data Connection = MkConnection
@@ -47,22 +50,11 @@ import Keybase.Chat.Types
 -- instance HasConnection Connection where
 --   conn = handle
 
--- | The 2 functions below were taken from stm-conduit which is BSD3 licensed
--- | Copyright (c) Clark Gaebel
--- | A simple wrapper around a "TQueue". As data is pushed into the queue, the
---   source will read it and pass it down the conduit pipeline.
-sourceTQueue :: MonadIO m => TQueue a -> ConduitM () a m ()
-sourceTQueue q = forever $ liftSTM (readTQueue q) >>= yield
-
-liftSTM :: MonadIO m => STM a -> m a
-liftSTM = liftIO . atomically
-
 open :: MonadIO m
      => m (TQueue Request)
 open = do
-
   req <- liftIO $ atomically newTQueue
-  let chat = setStdin createSink
+  let chat = setStdin createSinkFlush
            $ setStdout createSource
            $ setStderr createSource
            $ proc "keybase" ["chat", "api"]
@@ -71,10 +63,8 @@ open = do
     withProcess_ chat $ \p ->
       let input :: ConduitM () Void IO ()
           input = sourceTQueue req
-                  -- CL.replicate 2 (Request List)
-               .| CL.map (LBS.toStrict . encode)
-               .| CB.lines
-               -- .| CL.mapM_ print
+               .| CL.map (C.Chunk . LBS.toStrict . encode)
+               .| flush
                .| getStdin p
 
           output :: ConduitM () Void IO ()
