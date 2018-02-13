@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Concurrent            (threadDelay)
-import Control.Concurrent.STM.TQueue (writeTQueue)
+import Control.Concurrent.STM.TQueue (newTQueue, writeTQueue)
 import Control.Monad.STM             (atomically)
 
 import System.IO             (IO, hClose)
@@ -12,7 +12,8 @@ main = do
   putStrLn "Enter keybase chat api commands."
   putStrLn "Enter \"exit\" to exit."
 
-  q <- open
+  q <- atomically newTQueue
+  open q
   putStrLn "connection opened"
 
   loop q

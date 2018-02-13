@@ -3,34 +3,26 @@ module Keybase.Chat
   , open
   ) where
 
-import Prelude ((.), ($), (<$>), IO, fmap, print)
+import Prelude ((.), ($), IO, print)
 
-import Control.Applicative           ((<*>), pure)
-import Control.Concurrent.Async      (async, mapConcurrently_, race_)
-import Control.Concurrent.STM.TVar   (TVar)
-import Control.Concurrent.STM.TQueue (TQueue, newTQueue, readTQueue)
-import Control.Monad                 ((>>=), (>>), forever)
+import Control.Applicative           (pure)
+import Control.Concurrent.Async      (async, mapConcurrently_)
+import Control.Concurrent.STM.TQueue (TQueue, readTQueue)
 import Control.Monad.IO.Class        (MonadIO, liftIO)
-import Control.Monad.Reader          (MonadReader, EnvType)
-import Control.Monad.STM             (STM, atomically)
 
-import           Data.Aeson                 (decode, encode, parseJSON)
+import           Data.Aeson                 (decode, encode)
 import           Data.ByteString            (ByteString)
-import qualified Data.ByteString            as S
 import qualified Data.ByteString.Lazy       as LBS
-import           Data.Conduit               (ConduitM, (.|), runConduit, yield)
+import           Data.Conduit               (ConduitM, (.|), runConduit)
 import qualified Data.Conduit               as C
-import qualified Data.Conduit.Binary        as CB
 import qualified Data.Conduit.List          as CL
-import           Data.Conduit.Process.Typed (createPipe, createSink, createSource, withProcess_)
+import           Data.Conduit.Process.Typed (createSource, withProcess_)
 import           Data.Maybe                 (Maybe)
 import           Data.Void                  (Void)
-import           System.Process.Typed       (StreamSpec, StreamType (..)
-                                            ,proc
+import           System.Process.Typed       (proc
                                             ,getStderr, getStdin, getStdout
                                             ,setStderr, setStdin, setStdout
                                             )
-import           System.IO                  (hClose)
 
 import Data.Conduit.Process.Typed.Flush
 import Keybase.Chat.Types
@@ -51,9 +43,8 @@ import Keybase.Chat.Types
 --   conn = handle
 
 open :: MonadIO m
-     => m (TQueue Request)
-open = do
-  req <- liftIO $ atomically newTQueue
+     => TQueue Request -> m ()
+open req = do
   let chat = setStdin createSinkFlush
            $ setStdout createSource
            $ setStderr createSource
@@ -77,8 +68,7 @@ open = do
                 .| CL.mapM_ print
 
       in mapConcurrently_ runConduit [input, output, errput]
-
-  pure req
+  pure ()
 
 -- modify :: (MonadReader Api m, MonadIO m)
 --        => (Api -> TVar Handle)
