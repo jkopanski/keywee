@@ -1,4 +1,3 @@
-{-# language ForeignFunctionInterface #-}
 module WeeChat.Buffer
   where
 
