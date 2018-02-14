@@ -1,13 +1,16 @@
 module Keybase.Chat
   ( module Keybase.Chat.Types
+  , module Keybase.Chat.Monad
   , open
   ) where
 
-import Prelude ((.), ($), IO, print)
+import Prelude     ((.), ($), IO, print)
+import RIO         (RIO, asks)
 
 import Control.Applicative           (pure)
 import Control.Concurrent.Async      (async, mapConcurrently_)
 import Control.Concurrent.STM.TQueue (TQueue, readTQueue)
+import Control.Lens                  (view)
 import Control.Monad.IO.Class        (MonadIO, liftIO)
 
 import           Data.Aeson                 (decode, encode)
@@ -25,30 +28,17 @@ import           System.Process.Typed       (proc
                                             )
 
 import Data.Conduit.Process.Typed.Flush
+import Keybase.Chat.Monad
 import Keybase.Chat.Types
 
--- data Connection = MkConnection
---   { handle :: TVar Handle
---   , request :: TQueue Request
---   , response :: TQueue Response
---   }
-
--- class HasConnection a where
---   conn :: a -> TVar Handle
-
--- instance HasConnection (TVar Handle) where
---   conn = identity
-
--- instance HasConnection Connection where
---   conn = handle
-
-open :: MonadIO m
-     => TQueue Request -> m ()
-open req = do
+open :: HasApi env => RIO env ()
+open = do
   let chat = setStdin createSinkFlush
            $ setStdout createSource
            $ setStderr createSource
            $ proc "keybase" ["chat", "api"]
+
+  req <- asks (view command)
 
   _ <- liftIO $ async $
     withProcess_ chat $ \p ->

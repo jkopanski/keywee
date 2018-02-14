@@ -1,6 +1,7 @@
 {-# language ForeignFunctionInterface #-}
 module Plugin where
 
+import RIO                           (runRIO)
 import Control.Concurrent.STM.TQueue (newTQueue)
 import Control.Monad.STM             (STM, atomically)
 import System.IO                     (IO)
@@ -13,7 +14,9 @@ foreign export ccall keyweeInit :: IO ()
 keyweeInit :: IO ()
 keyweeInit = do
   req <- atomically newTQueue
-  ev <- open req
+  res <- atomically newTQueue
+  let chatApi = API req res
+  runRIO chatApi open
 
   _ <- newBuffer "keybase"
   pure ()

@@ -1,5 +1,7 @@
 module Main where
 
+import RIO                           (runRIO)
+
 import Control.Concurrent            (threadDelay)
 import Control.Concurrent.STM.TQueue (newTQueue, writeTQueue)
 import Control.Monad.STM             (atomically)
@@ -12,18 +14,21 @@ main = do
   putStrLn "Enter keybase chat api commands."
   putStrLn "Enter \"exit\" to exit."
 
-  q <- atomically newTQueue
-  open q
+  req <- atomically newTQueue
+  res <- atomically newTQueue
+  let chatApi = API req res
+
+  runRIO chatApi open
   putStrLn "connection opened"
 
-  loop q
+  loop req
   where loop q = do
           s <- getLine
           case s of
             "exit" -> return ()
             "list" -> do
-              let req = Request List
-              atomically $ writeTQueue q req
+              let cmd = Request List
+              atomically $ writeTQueue q cmd
               loop q
             _ -> loop q
 
