@@ -1,6 +1,6 @@
 module Main where
 
-import RIO                           ((.), ($), RIO, runRIO, when)
+import RIO                           ((.), ($), (<$), ($>), (>>=), RIO, runRIO, when)
 
 import Control.Concurrent            (threadDelay)
 import Control.Concurrent.STM.TQueue (newTQueue, readTQueue, writeTQueue)
@@ -11,6 +11,7 @@ import System.IO                     (IO, hClose)
 
 import Keybase.Chat
 
+-- type Handler a = a -> IO ()
 type EventSource a = (AddHandler a, a -> IO ())
 
 addHandler :: EventSource a -> AddHandler a
@@ -19,13 +20,20 @@ addHandler = fst
 fire :: EventSource a -> a -> IO ()
 fire = snd
 
+-- TODO: How To pass API as RIO env?
 frpNetwork :: API -> (EventSource Request, EventSource Response) -> MomentIO ()
-frpNetwork api (esreq, eskb) = do
+frpNetwork api (esreq, esres) = do
     -- obtain input events
     ereq <- fromAddHandler (addHandler esreq)
+    eres <- fromAddHandler (addHandler esres)
 
     let req = input api
+        res = output api
+
     reactimate $ (atomically . writeTQueue req) <$> ereq
+    -- | request prompts response
+    reactimate $ (atomically (readTQueue res) >>= fire esres) <$ ereq
+    reactimate $ putStrLn . show <$> eres
 
 eventLoop :: (EventSource Request, EventSource Response) -> IO ()
 eventLoop (esreq, eskb) = do

@@ -39,6 +39,7 @@ open = do
            $ proc "keybase" ["chat", "api"]
 
   req <- asks (view command)
+  res <- asks (view response)
 
   _ <- liftIO $ async $
     withProcess_ chat $ \p ->
@@ -51,7 +52,8 @@ open = do
           output :: ConduitM () Void IO ()
           output = getStdout p
                 .| CL.map (decode . LBS.fromStrict :: ByteString -> Maybe Response)
-                .| CL.mapM_ print
+                .| CL.catMaybes
+                .| sinkTQueue res
 
           errput :: ConduitM () Void IO ()
           errput = getStderr p
@@ -59,11 +61,3 @@ open = do
 
       in mapConcurrently_ runConduit [input, output, errput]
   pure ()
-
--- modify :: (MonadReader Api m, MonadIO m)
---        => (Api -> TVar Handle)
---        -> (Handle -> Handle)
---        -> m ()
--- modify sel f = do
---   ref <- asks sel
---   liftIO $
