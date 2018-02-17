@@ -1,9 +1,14 @@
 module Main where
 
-import RIO                           ((.), ($), (<$), ($>), (>>=), RIO, runRIO, when)
+import RIO                           ((.), ($), (<$), ($>), (>>=)
+                                     , RIO
+                                     , asks, forever, runRIO, when
+                                     )
 
 import Control.Concurrent            (threadDelay)
+import Control.Concurrent.Async      (async)
 import Control.Concurrent.STM.TQueue (newTQueue, readTQueue, writeTQueue)
+import Control.Lens                  (view)
 import Control.Monad.STM             (atomically)
 import Reactive.Banana
 import Reactive.Banana.Frameworks
@@ -20,23 +25,28 @@ addHandler = fst
 fire :: EventSource a -> a -> IO ()
 fire = snd
 
+registerApiResponse :: HasApi env => RIO env (AddHandler Response)
+registerApiResponse = do
+  res <- asks (view response)
+  (addHandler, fire) <- liftIO newAddHandler
+  liftIO $ async $ forever $ (atomically (readTQueue res) >>= fire)
+  pure addHandler
+
 -- TODO: How To pass API as RIO env?
-frpNetwork :: API -> (EventSource Request, EventSource Response) -> MomentIO ()
-frpNetwork api (esreq, esres) = do
+frpNetwork :: API -> EventSource Request -> MomentIO ()
+frpNetwork api esreq = do
     -- obtain input events
     ereq <- fromAddHandler (addHandler esreq)
-    eres <- fromAddHandler (addHandler esres)
+    eres <- liftIO (runRIO api registerApiResponse) >>= fromAddHandler
 
     let req = input api
         res = output api
 
     reactimate $ (atomically . writeTQueue req) <$> ereq
-    -- | request prompts response
-    reactimate $ (atomically (readTQueue res) >>= fire esres) <$ ereq
     reactimate $ putStrLn . show <$> eres
 
-eventLoop :: (EventSource Request, EventSource Response) -> IO ()
-eventLoop (esreq, eskb) = do
+eventLoop :: EventSource Request -> IO ()
+eventLoop esreq = do
   putStrLn "Enter keybase chat api commands."
   putStrLn "Enter \"exit\" to exit."
 
@@ -59,7 +69,7 @@ main = do
   runRIO chatApi open
   putStrLn "connection opened"
 
-  sources <- (,) <$> newAddHandler <*> newAddHandler
+  sources <- newAddHandler
   network <- compile (frpNetwork chatApi sources)
   actuate network
   eventLoop sources
