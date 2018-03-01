@@ -1,4 +1,6 @@
-{-# language ForeignFunctionInterface #-}
+{-# language
+        ForeignFunctionInterface
+      , OverloadedStrings #-}
 module Plugin where
 
 import RIO                           (runRIO)
