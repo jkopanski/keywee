@@ -17,3 +17,9 @@ cabal.sandbox.config
 *.hp
 .stack-work/
 a.out
+
+# Makefile based build
+*_stub.h
+lib/
+incopts.txt
+ldopts.txt
