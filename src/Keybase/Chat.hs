@@ -4,7 +4,7 @@ module Keybase.Chat
   , open
   ) where
 
-import Prelude     ((.), ($), IO, print)
+import Prelude     ((.), ($), IO)
 import RIO         (RIO, asks)
 
 import Control.Applicative           (pure)
@@ -15,6 +15,7 @@ import Control.Monad.IO.Class        (MonadIO, liftIO)
 
 import           Data.Aeson                 (decode, encode)
 import           Data.ByteString            (ByteString)
+import qualified Data.ByteString.Char8      as S8
 import qualified Data.ByteString.Lazy       as LBS
 import           Data.Conduit               (ConduitM, (.|), runConduit)
 import qualified Data.Conduit               as C
@@ -26,6 +27,7 @@ import           System.Process.Typed       (proc
                                             ,getStderr, getStdin, getStdout
                                             ,setStderr, setStdin, setStdout
                                             )
+import           System.IO                  (stderr)
 
 import Data.Conduit.Process.Typed.Flush
 import Keybase.Chat.Monad
@@ -57,7 +59,7 @@ open = do
 
           errput :: ConduitM () Void IO ()
           errput = getStderr p
-                .| CL.mapM_ print
+                .| CL.mapM_ (S8.hPutStr stderr)
 
       in mapConcurrently_ runConduit [input, output, errput]
   pure ()
