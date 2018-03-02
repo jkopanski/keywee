@@ -23,3 +23,4 @@ a.out
 lib/
 incopts.txt
 ldopts.txt
+*.so

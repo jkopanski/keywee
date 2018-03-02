@@ -3,11 +3,16 @@
       , OverloadedStrings #-}
 module Plugin where
 
+import Prelude hiding (init)
 import RIO                           (runRIO)
 import Control.Concurrent.STM.TQueue (newTQueue)
 import Control.Monad.STM             (STM, atomically)
 import System.IO                     (IO)
 
+import Reactive.Banana
+import Reactive.Banana.Frameworks
+
+import FRP
 import Keybase.Chat
 import WeeChat.Buffer
 
@@ -20,5 +25,10 @@ keyweeInit = do
   let chatApi = API req res
   runRIO chatApi open
 
-  _ <- newBuffer "keybase"
+  sources <- newAddHandler
+  network <- compile (frpNetwork chatApi sources)
+  actuate network
+
+  -- get conversations on init
+  fire sources (Request List)
   pure ()

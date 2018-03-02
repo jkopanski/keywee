@@ -14,16 +14,8 @@ import Reactive.Banana
 import Reactive.Banana.Frameworks
 import System.IO                     (IO, hClose)
 
+import FRP
 import Keybase.Chat
-
--- type Handler a = a -> IO ()
-type EventSource a = (AddHandler a, a -> IO ())
-
-addHandler :: EventSource a -> AddHandler a
-addHandler = fst
-
-fire :: EventSource a -> a -> IO ()
-fire = snd
 
 registerApiResponse :: HasApi env => RIO env (AddHandler Response)
 registerApiResponse = do
