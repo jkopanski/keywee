@@ -11,8 +11,14 @@ import           System.IO (IO)
 import WeeChat.FFI
 
 data Buffer = Buffer
-  { name :: Text }
+  { id :: Text
+  , name :: Text
+  , handle :: BufferHandle
+  }
 
 -- mkInputCb ::
 newBuffer :: Text -> IO BufferHandle
 newBuffer name = withCString (T.unpack name) $ \cname -> kw_buffer_new cname my_input_cb nullPtr nullPtr my_close_cb nullPtr nullPtr
+
+bPrint :: Text -> BufferHandle -> IO ()
+bPrint msg buf = withCString (T.unpack msg) $ \cmsg -> kw_buffer_printf buf cmsg

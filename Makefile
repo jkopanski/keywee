@@ -6,7 +6,7 @@ HSFLAGS=$(shell cat incopts.txt) -dynamic -fPIC -odir $(BUILD) -hidir $(BUILD) -
 LDFLAGS=$(shell cat ldopts.txt) -dynamic -shared -L$(LIBDIR) -optl-Wl,-rpath,$(LIBDIR)
 TARGET  = keywee.so
 # order is important as Buffer depends on FFI etc.
-OBJECTS = Types.o FFI.o Buffer.o Inbox.o FRP.o Monad.o Plugin.o keywee.o
+OBJECTS = Types.o FFI.o Buffer.o FRP.o Monad.o Plugin.o keywee.o
 
 .SUFFIXES = .hs .hsc
 VPATH = plugin:plugin/FRP:plugin/WeeChat:cbits
