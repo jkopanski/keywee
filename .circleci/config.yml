@@ -14,8 +14,9 @@ jobs:
       - save_cache:
           key: stack-deps
           paths:
-            - ".stack-work"
-            - ".stack"
+            - ~/.stack
+            - .stack-work
+            - .stack
 
   build:
     docker:
