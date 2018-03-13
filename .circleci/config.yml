@@ -4,13 +4,13 @@ jobs:
     docker:
       - image: circleci/haskell:latest
     steps:
-      - stack upgrade
+      - run: stack upgrade
       - checkout
       - restore_cache:
           keys:
             - stack-deps
-      - stack setup
-      - stack build --only-dependencies
+      - run: stack setup
+      - run: stack build --only-dependencies
       - save_cache:
           key: stack-deps
           paths:
@@ -19,11 +19,11 @@ jobs:
 
   build:
     docker:
-      -image: circleci/haskell:latest
+      - image: circleci/haskell:latest
     steps:
-      - stack build
-      - stack exec perl opts.pl keywe
-      - make all
+      - run: stack build
+      - run: stack exec perl opts.pl keywe
+      - run: make all
 
 workflows:
   version: 2
