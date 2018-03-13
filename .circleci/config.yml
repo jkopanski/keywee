@@ -2,7 +2,7 @@ version: 2
 jobs:
   setup:
     docker:
-      - image: circleci/haskell:latest
+      - image: fpco/stack-build:lts-10.4
     steps:
       - run: stack upgrade
       - checkout
@@ -19,7 +19,7 @@ jobs:
 
   build:
     docker:
-      - image: circleci/haskell:latest
+      - image: fpco/stack-build:lts-10.4
     steps:
       - run: stack build
       - run: stack exec perl opts.pl keywe
