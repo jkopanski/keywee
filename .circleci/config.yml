@@ -22,6 +22,7 @@ jobs:
     docker:
       - image: fpco/stack-build:lts-10.4
     steps:
+      - run: stack setup
       - run: stack build
       - run: stack exec perl opts.pl keywe
       - run: make all
