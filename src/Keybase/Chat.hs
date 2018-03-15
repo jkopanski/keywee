@@ -1,6 +1,7 @@
 module Keybase.Chat
-  ( module Keybase.Chat.Types
-  , module Keybase.Chat.Monad
+  ( module Keybase.Chat.Monad
+  , module Keybase.Chat.Request
+  , module Keybase.Chat.Types
   , open
   ) where
 
@@ -31,6 +32,7 @@ import           System.IO                  (stderr)
 
 import Data.Conduit.Process.Typed.Flush
 import Keybase.Chat.Monad
+import Keybase.Chat.Request
 import Keybase.Chat.Types
 
 open :: HasApi env => RIO env ()

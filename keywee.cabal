@@ -18,6 +18,7 @@ library
     Keybase
     Keybase.Chat
     Keybase.Chat.Monad
+    Keybase.Chat.Request
     Keybase.Chat.Types
   other-modules:
     Data.Conduit.Process.Typed.Flush
