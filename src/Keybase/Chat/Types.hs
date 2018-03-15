@@ -1,4 +1,6 @@
-{-# language DeriveGeneric #-}
+{-# language
+        DeriveGeneric
+      , DuplicateRecordFields #-}
 module Keybase.Chat.Types where
 
 import Prelude          (Bool (..), Enum (..), Eq (..), Ord (..), Show (..), (.))
@@ -8,68 +10,45 @@ import Data.Text        (Text, pack, stripPrefix, toLower, unpack)
 import Data.Aeson       (FromJSON (..), ToJSON (..),
                          defaultOptions,
                          genericParseJSON, genericToEncoding, genericToJSON)
-import Data.Aeson.Types (Options (..), SumEncoding(ObjectWithSingleField, TaggedObject),
+import Data.Aeson.Types (SumEncoding(ObjectWithSingleField, TaggedObject),
                          contentsFieldName, tagFieldName)
-import qualified GHC.Generics as G
+import qualified Data.Aeson.Types as A
+import qualified GHC.Generics     as G
 
-options :: Options
-options = defaultOptions
-  { constructorTagModifier = unpack . toLower . pack }
+encOptions :: A.Options
+encOptions = defaultOptions
+  { A.constructorTagModifier = unpack . toLower . pack }
 
 data Existance = Active | Archived | Deleted
   deriving (G.Generic, Eq, Enum, Ord, Show)
 instance FromJSON Existance where
-  parseJSON = genericParseJSON options
+  parseJSON = genericParseJSON encOptions
 instance ToJSON Existance where
-  toJSON = genericToJSON options
-  toEncoding = genericToEncoding options
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
 
 data Members = KBFS | Team | ImpTeam
   deriving (G.Generic, Eq, Enum, Ord, Show)
 instance FromJSON Members where
-  parseJSON = genericParseJSON options
+  parseJSON = genericParseJSON encOptions
 instance ToJSON Members where
-  toJSON = genericToJSON options
-  toEncoding = genericToEncoding options
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
 
 data SyncInbox = Current | Incremental | Clear
   deriving (G.Generic, Eq, Enum, Ord, Show)
 instance FromJSON SyncInbox where
-  parseJSON = genericParseJSON options
+  parseJSON = genericParseJSON encOptions
 instance ToJSON SyncInbox where
-  toJSON = genericToJSON options
-  toEncoding = genericToEncoding options
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
 
 strip :: Text -> Text -> Text
 strip prefix txt = fromMaybe txt (stripPrefix prefix txt)
 
-msgOptions :: Options
-msgOptions = defaultOptions
-  { constructorTagModifier = unpack . strip "msg" . toLower . pack }
-
-data Message
-  = MsgNone
-  | MsgText
-  | MsgAttachement
-  | MsgEdit
-  | MsgDelete
-  | MsgMetadata
-  | MsgTLFName
-  | MsgHeadline
-  | MsgAttachementUploaded
-  | MsgJoin
-  | MsgLeave
-  | MsgSystem
-  deriving (G.Generic, Eq, Enum, Ord, Show)
-instance FromJSON Message where
-  parseJSON = genericParseJSON msgOptions
-instance ToJSON Message where
-  toJSON = genericToJSON msgOptions
-  toEncoding = genericToEncoding msgOptions
-
-topicOptions :: Options
+topicOptions :: A.Options
 topicOptions = defaultOptions
-  { constructorTagModifier = unpack . strip "topic" . toLower . pack }
+  { A.constructorTagModifier = unpack . strip "topic" . toLower . pack }
 
 data Topic
   = TopicNone
@@ -82,9 +61,9 @@ instance ToJSON Topic where
   toJSON = genericToJSON topicOptions
   toEncoding = genericToEncoding topicOptions
 
-teamOptions :: Options
+teamOptions :: A.Options
 teamOptions = defaultOptions
-  { constructorTagModifier = unpack . strip "team" . toLower . pack }
+  { A.constructorTagModifier = unpack . strip "team" . toLower . pack }
 
 data Team
   = TeamNone
@@ -100,10 +79,10 @@ instance ToJSON Team where
 data Notification = Generic | AtMention
   deriving (G.Generic, Eq, Enum, Ord, Show)
 instance FromJSON Notification where
-  parseJSON = genericParseJSON options
+  parseJSON = genericParseJSON encOptions
 instance ToJSON Notification where
-  toJSON = genericToJSON options
-  toEncoding = genericToEncoding options
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
 
 data Status
   = Unfiled
@@ -114,14 +93,14 @@ data Status
   | Reported
   deriving (G.Generic, Eq, Enum, Ord, Show)
 instance FromJSON Status where
-  parseJSON = genericParseJSON options
+  parseJSON = genericParseJSON encOptions
 instance ToJSON Status where
-  toJSON = genericToJSON options
-  toEncoding = genericToEncoding options
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
 
-memberOptions :: Options
+memberOptions :: A.Options
 memberOptions = defaultOptions
-  { constructorTagModifier = unpack . strip "member" . toLower . pack }
+  { A.constructorTagModifier = unpack . strip "member" . toLower . pack }
 
 data MemberStatus
   = MemberActive
@@ -147,8 +126,9 @@ instance FromJSON Channel
 instance ToJSON Channel where
   toEncoding = genericToEncoding defaultOptions
 
+type ConversationId = Text
 data Conversation = Conversation
-  { id           :: Text
+  { id           :: ConversationId
   , channel      :: Channel
   , unread       :: Bool
   , active_at    :: Int
@@ -158,12 +138,12 @@ instance FromJSON Conversation
 instance ToJSON Conversation where
   toEncoding = genericToEncoding defaultOptions
 
-requestOptions :: Options
+requestOptions :: A.Options
 requestOptions = defaultOptions
-  { constructorTagModifier = unpack . strip "member" . toLower . pack
-  , sumEncoding = TaggedObject { contentsFieldName = "params"
-                               , tagFieldName = "method"
-                               }
+  { A.constructorTagModifier = unpack . strip "member" . toLower . pack
+  , A.sumEncoding = TaggedObject { contentsFieldName = "params"
+                                 , tagFieldName = "method"
+                                 }
   }
 
 data Method = Attach
@@ -177,33 +157,171 @@ data Method = Attach
 instance FromJSON Method where
   parseJSON = genericParseJSON requestOptions
 instance ToJSON Method where
-  toJSON = genericToJSON options
+  toJSON = genericToJSON encOptions
   toEncoding = genericToEncoding requestOptions
 
-data Request = Request
-  { method :: Method }
+data Options = Options
+  { conversation_id :: Text }
   deriving (G.Generic, Eq, Show)
+instance FromJSON Options where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON Options where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data Params = Params
+  { options :: Options }
+  deriving (G.Generic, Eq, Show)
+instance FromJSON Params where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON Params where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data Request = Request
+  { method :: Method
+  , params :: Maybe Params
+  } deriving (G.Generic, Eq, Show)
 instance FromJSON Request where
-  parseJSON = genericParseJSON options
+  parseJSON = genericParseJSON encOptions
 instance ToJSON Request where
-  toJSON = genericToJSON options
-  toEncoding = genericToEncoding options
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data RateLimit = RateLimit
+  { tank     :: Text
+  , capacity :: Int
+  , reset    :: Int
+  , gas      :: Int
+  } deriving (G.Generic, Eq, Show)
+instance FromJSON RateLimit where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON RateLimit where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data Pagination = Pagination
+  { next     :: Text
+  , previous :: Text
+  , num      :: Int
+  , last     :: Bool
+  } deriving (G.Generic, Eq, Show)
+instance FromJSON Pagination where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON Pagination where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+msgOptions :: A.Options
+msgOptions = defaultOptions
+  { A.tagSingleConstructors = True
+  , A.sumEncoding = TaggedObject { tagFieldName = "msg"
+                                 , contentsFieldName = "empty"}
+  }
+
+type MessageId = Int
+data Message = Message
+  { id :: MessageId
+  , channel :: Channel
+  , sender :: Text
+  , sent_at :: Int
+  , sent_at_ms :: Int
+  , content :: MessageContent
+  , prev :: [MessagePrev]
+  , unread :: Bool
+  } deriving (G.Generic, Eq, Show)
+instance FromJSON Message where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON Message where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data Msg = Msg
+  { msg :: Message }
+  deriving (G.Generic, Eq, Show)
+
+instance FromJSON Msg where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON Msg where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data MessageText = MessageText
+  { body :: Text }
+  deriving (G.Generic, Eq, Show)
+instance FromJSON MessageText where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON MessageText where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data MessageAttachementUploaded = MessageAttachementUploaded
+  { messageID :: Int }
+  deriving (G.Generic, Eq, Show)
+instance FromJSON MessageAttachementUploaded where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON MessageAttachementUploaded where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
+data MessageContent
+  = MsgNone
+  | MsgText { text :: MessageText }
+  | MsgAttachementUploaded { attachement_uploaded :: MessageAttachementUploaded }
+  -- | MsgEdit
+  -- | MsgDelete
+  -- | MsgMetadata
+  -- | MsgTLFName
+  -- | MsgHeadline
+  -- | MsgAttachement
+  -- | MsgJoin
+  -- | MsgLeave
+  -- | MsgSystem
+  deriving (G.Generic, Eq, Show)
+instance FromJSON MessageContent where
+  parseJSON = genericParseJSON contentOptions
+instance ToJSON MessageContent where
+  toJSON = genericToJSON contentOptions
+  toEncoding = genericToEncoding contentOptions
+
+contentOptions :: A.Options
+contentOptions = defaultOptions
+  { A.unwrapUnaryRecords = True
+  , A.sumEncoding = TaggedObject { tagFieldName = "type"
+                                 , contentsFieldName = ""
+                                 }
+  , A.constructorTagModifier = unpack . strip "msg" . toLower . pack
+  }
+
+data MessagePrev = MessagePrev
+  { id :: Int
+  , hash :: Text
+  } deriving (G.Generic, Eq, Show)
+instance FromJSON MessagePrev where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON MessagePrev where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
 
 data Result
   = Inbox { conversations :: [Conversation]
           , offline :: Bool
           }
+  | Messages { messages :: [Msg]
+             , pagination :: Pagination
+             , ratelimits :: [RateLimit]
+             }
   deriving (G.Generic, Eq, Show)
 instance FromJSON Result where
-  parseJSON = genericParseJSON options
+  parseJSON = genericParseJSON encOptions
 instance ToJSON Result where
-  toJSON = genericToJSON options
-  toEncoding = genericToEncoding options
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
 
-responseOptions :: Options
+responseOptions :: A.Options
 responseOptions = defaultOptions
-  { constructorTagModifier = unpack . strip "member" . toLower . pack
-  , sumEncoding = ObjectWithSingleField
+  { A.constructorTagModifier = unpack . strip "member" . toLower . pack
+  , A.sumEncoding = ObjectWithSingleField
   }
 
 data Response
