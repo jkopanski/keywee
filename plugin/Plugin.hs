@@ -30,5 +30,5 @@ keyweeInit = do
   actuate network
 
   -- get conversations on init
-  fire sources (Request List)
+  fire sources list
   pure ()

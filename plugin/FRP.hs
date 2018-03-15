@@ -1,10 +1,11 @@
 {-# language
-        OverloadedStrings
+        DuplicateRecordFields
+      , OverloadedStrings
       , RecursiveDo
       , ScopedTypeVariables #-}
 module FRP where
 
-import Prelude                       hiding (empty, id, lookup)
+import Prelude                       hiding (empty, id, lookup, read)
 import RIO                           ((.), ($), (<$), ($>), (>>=), (>=>)
                                      , RIO
                                      , asks, foldM, forever, runRIO, when
@@ -13,6 +14,7 @@ import Control.Concurrent.Async      (async)
 import Control.Concurrent.STM.TQueue (newTQueue, readTQueue, writeTQueue)
 import Control.Lens                  (view)
 import Control.Monad.STM             (atomically)
+import Data.Aeson                    (toEncoding)
 import Data.Map
 import Data.Semigroup                ((<>))
 import Data.Text                     (Text, unpack)
@@ -54,9 +56,12 @@ frpNetwork api esreq = mdo
   let req = input api
       res = output api
       (eError, eResult) = splitResponse eres
-      eInbox = let go (Inbox _ _) = True
-                   go _           = False
-                in filterE go eResult
+      eInbox = let isInbox Inbox{} = True
+                   isInbox _       = False
+                in filterE isInbox eResult
+      eMsgs = let areMsgs Messages{} = True
+                  areMsgs _          = False
+               in filterE areMsgs eResult
 
   -- split single Inbox event to separate Conversation events
   -- Inbox { conversations :: [Conversation] }
@@ -69,15 +74,23 @@ frpNetwork api esreq = mdo
   -- open new buffer for each conversation and fire appropriate action
   reactimate $ (makeBuffer >=> fireNewBuf) <$> eNewConversation
 
+  -- kep tabs on opened buffers
   let insertBuffer :: WC.Buffer -> Buffers -> Buffers
       insertBuffer buf = insert (WC.id buf) buf
-
   (bBuffers :: Behavior Buffers)
     <- accumB empty $ insertBuffer <$> eNewBuf
+
+  -- get messages for newly opened buffers
+  let eFirstRead = read . WC.id <$> eNewBuf
+  reactimate $ fire esreq <$> eFirstRead
+  -- test msgs
+  reactimate $ (hPutStr stderr . show . toEncoding) <$> eMsgs
 
   -- fire separate action for each conversation
   reactimate $ (atomically . writeTQueue req) <$> ereq
   reactimate $ hPutStr stderr . unpack <$> eError
+  -- reactimate $ hPutStr stderr . show . toEncoding <$> ereq
+  -- reactimate $ hPutStr stderr . show . toEncoding <$> eres
 
 splitResponse :: Event Response -> (Event Text, Event Result)
 splitResponse e =

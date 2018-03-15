@@ -1,6 +1,5 @@
 {-# language
-        DeriveGeneric
-      , DuplicateRecordFields #-}
+        DeriveGeneric #-}
 module Keybase.Chat.Types where
 
 import Prelude          (Bool (..), Enum (..), Eq (..), Ord (..), Show (..), (.))
@@ -17,7 +16,9 @@ import qualified GHC.Generics     as G
 
 encOptions :: A.Options
 encOptions = defaultOptions
-  { A.constructorTagModifier = unpack . toLower . pack }
+  { A.constructorTagModifier = unpack . toLower . pack
+  , A.omitNothingFields = True
+  }
 
 data Existance = Active | Archived | Deleted
   deriving (G.Generic, Eq, Enum, Ord, Show)
@@ -212,29 +213,41 @@ instance ToJSON Pagination where
   toJSON = genericToJSON encOptions
   toEncoding = genericToEncoding encOptions
 
+type UserId = Text
+type DeviceId = Text
+data Sender = Sender
+  { uid :: UserId
+  , username :: Text
+  , device_id :: DeviceId
+  , device_name :: Text
+  } deriving (G.Generic, Eq, Show)
+instance FromJSON Sender where
+  parseJSON = genericParseJSON encOptions
+instance ToJSON Sender where
+  toJSON = genericToJSON encOptions
+  toEncoding = genericToEncoding encOptions
+
 msgOptions :: A.Options
 msgOptions = defaultOptions
-  { A.tagSingleConstructors = True
-  , A.sumEncoding = TaggedObject { tagFieldName = "msg"
-                                 , contentsFieldName = "empty"}
-  }
+  { A.constructorTagModifier = unpack . toLower . pack
+  , A.fieldLabelModifier = unpack . strip "msg" . toLower . pack}
 
 type MessageId = Int
 data Message = Message
-  { id :: MessageId
-  , channel :: Channel
-  , sender :: Text
-  , sent_at :: Int
-  , sent_at_ms :: Int
-  , content :: MessageContent
-  , prev :: [MessagePrev]
-  , unread :: Bool
+  { msgId :: MessageId
+  , msgChannel :: Channel
+  , msgSender :: Sender
+  , msgSent_at :: Int
+  , msgSent_at_ms :: Int
+  , msgContent :: MessageContent
+  , msgPrev :: [MessagePrev]
+  , msgUnread :: Bool
   } deriving (G.Generic, Eq, Show)
 instance FromJSON Message where
-  parseJSON = genericParseJSON encOptions
+  parseJSON = genericParseJSON msgOptions
 instance ToJSON Message where
-  toJSON = genericToJSON encOptions
-  toEncoding = genericToEncoding encOptions
+  toJSON = genericToJSON msgOptions
+  toEncoding = genericToEncoding msgOptions
 
 data Msg = Msg
   { msg :: Message }
@@ -293,15 +306,24 @@ contentOptions = defaultOptions
   , A.constructorTagModifier = unpack . strip "msg" . toLower . pack
   }
 
+prevOptions :: A.Options
+prevOptions = defaultOptions
+  { A.constructorTagModifier = unpack . toLower . pack
+  , A.fieldLabelModifier = unpack . strip "prev" . toLower . pack}
+
 data MessagePrev = MessagePrev
-  { id :: Int
-  , hash :: Text
+  { prevId :: Int
+  , prevHash :: Text
   } deriving (G.Generic, Eq, Show)
 instance FromJSON MessagePrev where
-  parseJSON = genericParseJSON encOptions
+  parseJSON = genericParseJSON prevOptions
 instance ToJSON MessagePrev where
-  toJSON = genericToJSON encOptions
-  toEncoding = genericToEncoding encOptions
+  toJSON = genericToJSON prevOptions
+  toEncoding = genericToEncoding prevOptions
+
+resultOptions :: A.Options
+resultOptions = defaultOptions
+  { A.sumEncoding = A.UntaggedValue }
 
 data Result
   = Inbox { conversations :: [Conversation]
@@ -313,10 +335,10 @@ data Result
              }
   deriving (G.Generic, Eq, Show)
 instance FromJSON Result where
-  parseJSON = genericParseJSON encOptions
+  parseJSON = genericParseJSON resultOptions
 instance ToJSON Result where
-  toJSON = genericToJSON encOptions
-  toEncoding = genericToEncoding encOptions
+  toJSON = genericToJSON resultOptions
+  toEncoding = genericToEncoding resultOptions
 
 responseOptions :: A.Options
 responseOptions = defaultOptions
