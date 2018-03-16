@@ -4,7 +4,7 @@ jobs:
     docker:
       - image: fpco/stack-build:lts-10.4
     steps:
-      - run: apt-get install -y weechat-dev
+      - run: apt-get install -y weechat
       - run: stack upgrade
       - checkout
       - restore_cache:
