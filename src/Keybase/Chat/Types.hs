@@ -28,7 +28,7 @@ instance ToJSON Existance where
   toJSON = genericToJSON encOptions
   toEncoding = genericToEncoding encOptions
 
-data Members = KBFS | Team | ImpTeam
+data Members = KBFS | Team | ImpTeamNative | ImpTeamUpgrade
   deriving (G.Generic, Eq, Enum, Ord, Show)
 instance FromJSON Members where
   parseJSON = genericParseJSON encOptions
