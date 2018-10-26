@@ -32,75 +32,91 @@ library
   build-depends:
       base                 >= 4.7  && < 5
     , aeson
-    , async                >= 2.1  && < 2.2
+    , async                >= 2.1  && < 2.3
     , bytestring           >= 0.10 && < 0.11
-    , conduit              >= 1.2  && < 1.3
+    , conduit              >= 1.2  && < 1.4
     , conduit-combinators
-    , conduit-extra        >= 1.1  && < 1.3
+    , conduit-extra        >= 1.1  && < 1.4
     , lens 
     , monads-tf            >= 0.1  && < 0.2
     , mono-traversable     >= 1.0  && < 1.1
     , process              >= 1.4  && < 1.7
     , rio
-    , stm                  >= 2.4  && < 2.5
+    , stm                  >= 2.4  && < 2.6
     , stm-conduit
     , text                 >= 1.2  && < 1.3
     , transformers         >= 0.5  && < 0.6
     , typed-process
     , reactive-banana
 
--- executable pipe
---   hs-source-dirs:      plugin
---   main-is:             Main.hs
---   default-language:    Haskell2010
---   ghc-options:
---       -threaded
---       -debug
---   default-extensions:
---       DeriveGeneric
---     , OverloadedStrings
---   build-depends:
---       base                 >= 4.7  && < 5
---     , aeson
---     , async                >= 2.1  && < 2.2
---     , bytestring           >= 0.10 && < 0.11
---     , conduit              >= 1.2  && < 1.3
---     , conduit-extra        >= 1.1  && < 1.3
---     , keywee
---     , lens
---     , monads-tf            >= 0.1  && < 0.2
---     , mono-traversable     >= 1.0  && < 1.1
---     , process              >= 1.4  && < 1.7
---     , rio
---     , stm                  >= 2.4  && < 2.5
---     , text                 >= 1.2  && < 1.3
---     , transformers         >= 0.5  && < 0.6
---     , reactive-banana
+foreign-library keywee
+  type:                native-shared
+  lib-version-info:    0:0:1
+  hs-source-dirs:      plugin
+  other-modules:
+    FRP
+    Plugin
+    WeeChat.Buffer
+    WeeChat.FFI
+    WeeChat.Types
+  c-sources:           cbits/keywee.c
+  include-dirs:        cbits/ 
+  default-language:    Haskell2010
+  default-extensions:
+      OverloadedStrings
+  ghc-options:
+    -threaded
+    -dynamic
+  build-depends:
+      base                 >= 4.7  && < 5
+    , aeson
+    , async
+    , bytestring           >= 0.10 && < 0.11
+    , containers
+    , keywee
+    , lens
+    , monads-tf            >= 0.1  && < 0.2
+    , rio
+    , stm                  >= 2.4  && < 2.6
+    , text                 >= 1.2  && < 1.3
+    , transformers         >= 0.5  && < 0.6
+    , reactive-banana
 
--- foreign-library keywee
---   type:                native-shared
---   lib-version-info:    0:0:1
---   hs-source-dirs:      plugin
---   other-modules:
---     Plugin
---     WeeChat.Buffer
---     WeeChat.FFI
---     WeeChat.Types
---   c-sources:           cbits/keywee.c
---   include-dirs:        cbits/ 
---   default-language:    Haskell2010
---   default-extensions:
---       OverloadedStrings
---   ghc-options:         -threaded
---   build-depends:
---       base                 >= 4.7  && < 5
---     , bytestring           >= 0.10 && < 0.11
---     , keywee
---     , monads-tf            >= 0.1  && < 0.2
---     , rio
---     , stm                  >= 2.4  && < 2.5
---     , text                 >= 1.2  && < 1.3
---     , transformers         >= 0.5  && < 0.6
+executable pipe
+  hs-source-dirs:      plugin
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  include-dirs:        cbits/
+  other-modules:
+    FRP
+    WeeChat.Buffer
+    WeeChat.FFI
+    WeeChat.Types
+  ghc-options:
+      -threaded
+      -debug
+  default-extensions:
+      DeriveGeneric
+    , OverloadedStrings
+  build-depends:
+      base                 >= 4.7  && < 5
+    , aeson
+    , async                >= 2.1  && < 2.3
+    , bytestring           >= 0.10 && < 0.11
+    , conduit              >= 1.2  && < 1.4
+    , conduit-extra        >= 1.1  && < 1.4
+    , containers
+    , keywee
+    , lens
+    , monads-tf            >= 0.1  && < 0.2
+    , mono-traversable     >= 1.0  && < 1.1
+    , process              >= 1.4  && < 1.7
+    , rio
+    , stm                  >= 2.4  && < 2.6
+    , text                 >= 1.2  && < 1.3
+    , transformers         >= 0.5  && < 0.6
+    , reactive-banana
+
   
 -- test-suite keywee-tests
 --   type:                exitcode-stdio-1.0

@@ -58,15 +58,9 @@ weechat_plugin_init (struct t_weechat_plugin *plugin,
   int hsargc = 1;
   char* hsargv[] = { "+RTS", NULL };
   char** pargv = hsargv;
-#if __GLASGOW_HASKELL__ >= 703
-  {
-    RtsConfig conf = defaultRtsConfig;
-    conf.rts_opts_enabled = RtsOptsAll;
-    hs_init_ghc(&hsargc, &pargv, conf);
-  }
-#else
-  hs_init(&hsargc, &pargv);
-#endif
+  RtsConfig conf = defaultRtsConfig;
+  conf.rts_opts_enabled = RtsOptsAll;
+  hs_init_ghc(&hsargc, &pargv, conf);
 
   weechat_plugin = plugin;
   keyweeInit();

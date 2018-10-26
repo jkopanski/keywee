@@ -40,12 +40,10 @@ sinkTQueue q = CL.mapM_ (liftSTM . writeTQueue q)
 liftSTM :: MonadIO m => STM a -> m a
 liftSTM = liftIO . atomically
 
--- | Alternative to default @createSint@ from @Data.Conduit.Process.Typed@
+-- | Alternative to default @createSink@ from @Data.Conduit.Process.Typed@
 --   that creates sink that can be flushed
 createSinkFlush :: MonadIO m => StreamSpec 'STInput (ConduitM (C.Flush S.ByteString) o m ())
-createSinkFlush =
-    (\h -> C.addCleanup (\_ -> liftIO $ hClose h) (CB.sinkHandleFlush h))
-    `fmap` createPipe
+createSinkFlush = CB.sinkHandleFlush `fmap` createPipe
 
 flush :: Monad m => ConduitM (C.Flush a) (C.Flush a) m ()
 flush = CC.concatMap (: (Seq.singleton C.Flush))
