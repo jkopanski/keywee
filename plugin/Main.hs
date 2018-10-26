@@ -14,15 +14,8 @@ import Reactive.Banana
 import Reactive.Banana.Frameworks
 import System.IO                     (IO, hClose)
 
-import FRP
+import FRP hiding (frpNetwork)
 import Keybase.Chat
-
-registerApiResponse :: HasApi env => RIO env (AddHandler Response)
-registerApiResponse = do
-  res <- asks (view response)
-  (addHandler, fire) <- liftIO newAddHandler
-  liftIO $ async $ forever $ (atomically (readTQueue res) >>= fire)
-  pure addHandler
 
 -- TODO: How To pass API as RIO env?
 frpNetwork :: API -> EventSource Request -> MomentIO ()
@@ -46,7 +39,7 @@ eventLoop esreq = do
   where loop = do
           s <- getLine
           case s of
-            "list" -> fire esreq (Request List)
+            "list" -> fire esreq (Request List Nothing)
             "exit" -> pure ()
 
           when (s /= "exit") loop
