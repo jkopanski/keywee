@@ -1,5 +1,5 @@
 { mkDerivation, aeson, async, base, bytestring, conduit
-, conduit-combinators, conduit-extra, lens, monads-tf
+, conduit-combinators, conduit-extra, hie, lens, monads-tf
 , mono-traversable, process, reactive-banana, rio, stdenv, stm
 , stm-conduit, text, transformers, typed-process
 , weechat
@@ -13,6 +13,7 @@ mkDerivation {
     conduit-extra lens monads-tf mono-traversable process
     reactive-banana rio stm stm-conduit text transformers typed-process
   ];
+  buildTools = [ hie ];
   homepage = "http://github.com/jkopanski/keywee#readme";
   description = "Keybase chat plugin for WeeChat";
   license = stdenv.lib.licenses.gpl3;
