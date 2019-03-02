@@ -17,6 +17,12 @@ let
                 );
               reactive-banana = pkgs.haskell.lib.doJailbreak
                 haskellPackagesOld.reactive-banana;
+              brittany = pkgs.haskell.lib.doJailbreak
+	        haskellPackagesOld.brittany;
+              multistate = pkgs.haskell.lib.doJailbreak
+	        haskellPackagesOld.multistate;
+              hsimport = pkgs.haskell.lib.doJailbreak
+	        haskellPackagesOld.hsimport;
             };
           };
         };
